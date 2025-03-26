@@ -38,6 +38,9 @@ while running:
                 running = False
         elif state == GAME:
             game.handle_event(event)
+            if game.request_exit_to_menu:
+                game = PuzzleGame(screen) 
+                state = MENU
 
     screen.fill((30, 30, 30))
     if state == MENU:
