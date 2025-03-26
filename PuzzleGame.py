@@ -1,13 +1,14 @@
 import pygame
 import random
+import time
 
 class PuzzleGame:
-    def __init__(self, screen):
+    def __init__(self, screen, maze_size, move_delay):
         self.screen = screen
         self.visible_rows = 10
         self.visible_cols = 15
-        self.total_rows = 64
-        self.total_cols = 64
+        self.total_rows, self.total_cols = maze_size
+        self.move_delay = move_delay / 10.0  # Convert to seconds
         self.grid = [[' ' for _ in range(self.total_cols)] for _ in range(self.total_rows)]
 
         # Game state
@@ -17,6 +18,10 @@ class PuzzleGame:
         # Player
         self.player_symbol = '@'
         self.player_pos = [1, 1]
+
+        # Movement tracking
+        self.move_direction = None
+        self.last_move_time = time.time()
 
         # Symbols
         self.block_symbol = '#'
@@ -102,17 +107,33 @@ class PuzzleGame:
                 self.request_exit_to_menu = True
             return
 
+        # Track held direction
         if event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT):
+                self.move_direction = event.key
+
+        if event.type == pygame.KEYUP:
+            if event.key == self.move_direction:
+                self.move_direction = None
+
+    def update(self):
+        if self.paused or self.won:
+            return
+
+        current_time = time.time()
+        if self.move_direction and (current_time - self.last_move_time) >= self.move_delay:
+            self.last_move_time = current_time
+
             r, c = self.player_pos
             new_r, new_c = r, c
 
-            if event.key == pygame.K_UP and r > 0:
+            if self.move_direction == pygame.K_UP and r > 0:
                 new_r -= 1
-            elif event.key == pygame.K_DOWN and r < self.total_rows - 1:
+            elif self.move_direction == pygame.K_DOWN and r < self.total_rows - 1:
                 new_r += 1
-            elif event.key == pygame.K_LEFT and c > 0:
+            elif self.move_direction == pygame.K_LEFT and c > 0:
                 new_c -= 1
-            elif event.key == pygame.K_RIGHT and c < self.total_cols - 1:
+            elif self.move_direction == pygame.K_RIGHT and c < self.total_cols - 1:
                 new_c += 1
 
             if self.grid[new_r][new_c] != self.block_symbol:
@@ -121,15 +142,11 @@ class PuzzleGame:
                 self.player_pos = [new_r, new_c]
                 self.place_player()
 
-    def update(self):
-        pass
-
     def draw(self):
         if self.won:
             self.draw_win_screen()
             return
 
-        # Camera offset calculation
         r, c = self.player_pos
         row_start = max(0, min(self.total_rows - self.visible_rows, r - 4))
         col_start = max(0, min(self.total_cols - self.visible_cols, c - 7))
@@ -171,6 +188,6 @@ class PuzzleGame:
 
     def draw_win_screen(self):
         msg = "Level Complete! Press Enter"
-        text = self.font.render(msg, True, (255, 255, 255))
+        text = self.font.render(msg, True, (255, 255, 0))
         rect = text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
         self.screen.blit(text, rect)
