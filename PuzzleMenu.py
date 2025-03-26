@@ -1,5 +1,4 @@
 import pygame
-import random
 
 class PuzzleMenu:
     def __init__(self, screen):
