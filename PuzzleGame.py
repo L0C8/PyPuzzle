@@ -8,73 +8,67 @@ class PuzzleGame:
         self.visible_rows = 10
         self.visible_cols = 15
         self.total_rows, self.total_cols = maze_size
-        self.move_delay = move_delay / 10.0  # Convert to seconds
-        self.grid = [[' ' for _ in range(self.total_cols)] for _ in range(self.total_rows)]
+        self.move_delay = move_delay / 10.0
+        self.grid = [['#' for _ in range(self.total_cols)] for _ in range(self.total_rows)]
 
-        # Game state
         self.paused = False
         self.won = False
-
-        # Player
         self.player_symbol = '@'
-        self.player_pos = [1, 1]
-
-        # Movement tracking
+        self.finish_symbol = 'O'
         self.move_direction = None
         self.last_move_time = time.time()
 
-        # Symbols
-        self.block_symbol = '#'
-        self.finish_symbol = 'O'
-
-        # Fonts
         self.font = pygame.font.SysFont("Courier New", 24)
         self.cell_width = screen.get_width() // self.visible_cols
         self.cell_height = screen.get_height() // self.visible_rows
 
-        # Pause UI
         self.pause_box = pygame.Rect(90, 60, 300, 200)
         self.resume_rect = None
         self.exit_rect = None
-
-        # Internal menu tracking
         self.pause_options = ["Resume", "Exit"]
         self.pause_selected_index = 0
         self.pause_option_rects = []
 
-        # Place finish and blocks
-        self.place_finish()
-        self.place_random_blocks(count=100)
-        self.place_player()
+        self.generate_maze()
 
-        # Menu communication
         self.request_exit_to_menu = False
 
-    def place_finish(self):
-        while True:
-            r = random.randint(0, self.total_rows - 1)
-            c = random.randint(0, self.total_cols - 1)
-            if [r, c] != self.player_pos:
-                self.grid[r][c] = self.finish_symbol
-                self.finish_pos = [r, c]
-                break
+    def generate_maze(self):
+        def neighbors(r, c):
+            dirs = [(-2, 0), (2, 0), (0, -2), (0, 2)]
+            result = []
+            for dr, dc in dirs:
+                nr, nc = r + dr, c + dc
+                if 0 < nr < self.total_rows and 0 < nc < self.total_cols:
+                    result.append((nr, nc))
+            random.shuffle(result)
+            return result
 
-    def place_random_blocks(self, count=50):
-        placed = 0
-        while placed < count:
-            r = random.randint(0, self.total_rows - 1)
-            c = random.randint(0, self.total_cols - 1)
-            if self.grid[r][c] == ' ' and [r, c] != self.player_pos:
-                self.grid[r][c] = self.block_symbol
-                placed += 1
+        # Start maze generation at a random odd cell
+        start_r = random.randrange(1, self.total_rows, 2)
+        start_c = random.randrange(1, self.total_cols, 2)
+        self.grid[start_r][start_c] = ' '
+        stack = [(start_r, start_c)]
 
-    def place_player(self):
-        for row in range(self.total_rows):
-            for col in range(self.total_cols):
-                if self.grid[row][col] == self.player_symbol:
-                    self.grid[row][col] = ' '
-        r, c = self.player_pos
-        self.grid[r][c] = self.player_symbol
+        while stack:
+            r, c = stack[-1]
+            for nr, nc in neighbors(r, c):
+                if self.grid[nr][nc] == '#':
+                    wall_r, wall_c = (r + nr) // 2, (c + nc) // 2
+                    self.grid[wall_r][wall_c] = ' '
+                    self.grid[nr][nc] = ' '
+                    stack.append((nr, nc))
+                    break
+            else:
+                stack.pop()
+
+        # Set player and finish point
+        empty_cells = [(r, c) for r in range(self.total_rows) for c in range(self.total_cols) if self.grid[r][c] == ' ']
+        self.player_pos = random.choice(empty_cells)
+        self.grid[self.player_pos[0]][self.player_pos[1]] = self.player_symbol
+        empty_cells.remove(self.player_pos)
+        self.finish_pos = random.choice(empty_cells)
+        self.grid[self.finish_pos[0]][self.finish_pos[1]] = self.finish_symbol
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
@@ -107,7 +101,6 @@ class PuzzleGame:
                 self.request_exit_to_menu = True
             return
 
-        # Track held direction
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT):
                 self.move_direction = event.key
@@ -123,7 +116,6 @@ class PuzzleGame:
         current_time = time.time()
         if self.move_direction and (current_time - self.last_move_time) >= self.move_delay:
             self.last_move_time = current_time
-
             r, c = self.player_pos
             new_r, new_c = r, c
 
@@ -136,11 +128,12 @@ class PuzzleGame:
             elif self.move_direction == pygame.K_RIGHT and c < self.total_cols - 1:
                 new_c += 1
 
-            if self.grid[new_r][new_c] != self.block_symbol:
+            if self.grid[new_r][new_c] != '#':
                 if self.grid[new_r][new_c] == self.finish_symbol:
                     self.won = True
+                self.grid[r][c] = ' '
                 self.player_pos = [new_r, new_c]
-                self.place_player()
+                self.grid[new_r][new_c] = self.player_symbol
 
     def draw(self):
         if self.won:
