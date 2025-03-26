@@ -1,1 +1,1 @@
-# PyMastermind
+# PyParrot
