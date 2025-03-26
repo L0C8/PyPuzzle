@@ -8,7 +8,7 @@ class PuzzleGame:
         self.visible_rows = 10
         self.visible_cols = 15
         self.total_rows, self.total_cols = maze_size
-        self.move_delay = move_delay / 10.0
+        self.move_delay = move_delay / 25.0 # revised so it's faster
         self.grid = [['#' for _ in range(self.total_cols)] for _ in range(self.total_rows)]
 
         self.paused = False
@@ -44,7 +44,6 @@ class PuzzleGame:
             random.shuffle(result)
             return result
 
-        # Start maze generation at a random odd cell
         start_r = random.randrange(1, self.total_rows, 2)
         start_c = random.randrange(1, self.total_cols, 2)
         self.grid[start_r][start_c] = ' '
@@ -62,7 +61,6 @@ class PuzzleGame:
             else:
                 stack.pop()
 
-        # Set player and finish point
         empty_cells = [(r, c) for r in range(self.total_rows) for c in range(self.total_cols) if self.grid[r][c] == ' ']
         self.player_pos = random.choice(empty_cells)
         self.grid[self.player_pos[0]][self.player_pos[1]] = self.player_symbol
@@ -149,7 +147,13 @@ class PuzzleGame:
                 grid_r = row_start + i
                 grid_c = col_start + j
                 char = self.grid[grid_r][grid_c]
-                text = self.font.render(char, True, (255, 255, 255))
+                if char == '#':
+                    color = (120, 120, 120)
+                elif char == 'O':
+                    color = (255, 255, 0)
+                else:
+                    color = (255, 255, 255)
+                text = self.font.render(char, True, color)
                 x = j * self.cell_width + 8
                 y = i * self.cell_height + 4
                 self.screen.blit(text, (x, y))
