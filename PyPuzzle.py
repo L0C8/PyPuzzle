@@ -18,7 +18,7 @@ state = MENU
 # ----- Initialize components -----
 clock = pygame.time.Clock()
 menu = PuzzleMenu(screen)
-game = PuzzleGame(screen)
+game = None # (moved below)
 
 # ----- Main loop -----
 running = True
@@ -33,13 +33,16 @@ while running:
         if state == MENU:
             result = menu.handle_event(event)
             if result == "start":
+                maze_size, move_delay = menu.get_settings()
+                game = PuzzleGame(screen, maze_size, move_delay)
                 state = GAME
             elif result == "exit":
                 running = False
         elif state == GAME:
             game.handle_event(event)
             if game.request_exit_to_menu:
-                game = PuzzleGame(screen) 
+                maze_size, move_delay = menu.get_settings()
+                game = PuzzleGame(screen, maze_size, move_delay)
                 state = MENU
 
     screen.fill((30, 30, 30))

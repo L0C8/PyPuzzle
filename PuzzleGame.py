@@ -2,12 +2,12 @@ import pygame
 import random
 
 class PuzzleGame:
-    def __init__(self, screen):
+    def __init__(self, screen, maze_size, move_delay):
         self.screen = screen
         self.visible_rows = 10
         self.visible_cols = 15
-        self.total_rows = 64
-        self.total_cols = 64
+        self.total_rows, self.total_cols = maze_size
+        self.move_delay = move_delay
         self.grid = [[' ' for _ in range(self.total_cols)] for _ in range(self.total_rows)]
 
         # Game state
