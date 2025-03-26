@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 class PuzzleGame:
     def __init__(self, screen, maze_size, move_delay):
@@ -7,7 +8,7 @@ class PuzzleGame:
         self.visible_rows = 10
         self.visible_cols = 15
         self.total_rows, self.total_cols = maze_size
-        self.move_delay = move_delay
+        self.move_delay = move_delay / 10.0  # Convert to seconds
         self.grid = [[' ' for _ in range(self.total_cols)] for _ in range(self.total_rows)]
 
         # Game state
@@ -20,6 +21,7 @@ class PuzzleGame:
 
         # Movement tracking
         self.move_direction = None
+        self.last_move_time = time.time()
 
         # Symbols
         self.block_symbol = '#'
@@ -118,7 +120,10 @@ class PuzzleGame:
         if self.paused or self.won:
             return
 
-        if self.move_direction:
+        current_time = time.time()
+        if self.move_direction and (current_time - self.last_move_time) >= self.move_delay:
+            self.last_move_time = current_time
+
             r, c = self.player_pos
             new_r, new_c = r, c
 
