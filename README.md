@@ -1,1 +1,1 @@
-# PyParrot
+# PyPuzzle
