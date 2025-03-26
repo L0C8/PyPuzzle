@@ -98,6 +98,11 @@ class PuzzleGame:
             self.draw_pause_menu()
 
     def draw_pause_menu(self):
+        # Menu Settings
+        self.pause_options = ["Resume", "Exit"]
+        if not hasattr(self, 'pause_selected_index'):
+            self.pause_selected_index = 0
+        self.pause_option_rects = []
 
         # Background panel for pause menu
         bg_box = self.pause_box.inflate(20, 20)
@@ -113,12 +118,14 @@ class PuzzleGame:
         pause_rect = pause_text.get_rect(center=(self.pause_box.centerx, self.pause_box.top + 30))
         self.screen.blit(pause_text, pause_rect)
 
-        # Resume button
-        resume_text = self.font.render("Resume", True, (255, 255, 255))
-        self.resume_rect = resume_text.get_rect(center=(self.pause_box.centerx, self.pause_box.centery))
-        self.screen.blit(resume_text, self.resume_rect)
+        # Menu buttons controls
+        for i, option in enumerate(self.pause_options):
+            color = (255, 255, 255) if i == self.pause_selected_index else (180, 180, 180)
+            option_text = self.font.render(option, True, color)
+            option_rect = option_text.get_rect(center=(self.pause_box.centerx, self.pause_box.centery + i * 40))
+            self.screen.blit(option_text, option_rect)
+            self.pause_option_rects.append(option_rect)
 
-        # Exit button
-        exit_text = self.font.render("Exit", True, (255, 255, 255))
-        self.exit_rect = exit_text.get_rect(center=(self.pause_box.centerx, self.pause_box.centery + 40))
-        self.screen.blit(exit_text, self.exit_rect)
+        # Mouse button controls
+        self.resume_rect = self.pause_option_rects[0]
+        self.exit_rect = self.pause_option_rects[1]
