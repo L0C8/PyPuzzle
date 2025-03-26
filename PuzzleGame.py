@@ -18,6 +18,9 @@ class PuzzleGame:
         self.player_symbol = '@'
         self.player_pos = [1, 1]
 
+        # Movement tracking
+        self.move_direction = None
+
         # Symbols
         self.block_symbol = '#'
         self.finish_symbol = 'O'
@@ -180,6 +183,6 @@ class PuzzleGame:
 
     def draw_win_screen(self):
         msg = "Level Complete! Press Enter"
-        text = self.font.render(msg, True, (255, 255, 255))
+        text = self.font.render(msg, True, (255, 255, 0))
         rect = text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
         self.screen.blit(text, rect)
